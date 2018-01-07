@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+
+# PROVIDE: dnsmon
+# REQUIRE: NETWORKING SERVERS
+# BEFORE:  DAEMON
+# KEYWORD: shutdown
+
+#
+# Define these dnsmon_* variables in one of these files:
+#       /etc/rc.conf
+#       /etc/rc.conf.local
+#
+# dnsmon_enable="YES"		# Run the dnsmon daemon (YES/NO).
+# dnsmon_flags=""		# Options
+#
+# DO NOT CHANGE THESE DEFAULT VALUES HERE
+#
+dnsmon_enable=${dnsmon_enable:-"NO"}
+command_args="${dnsmon_flags:-""} &"
+
+. /etc/rc.subr
+
+name="dnsmon"
+rcvar=dnsmon_enable
+
+procname=dnsmon.sh
+
+command="/usr/local/dnsmon/etc/dnsmon.sh"
+
+load_rc_config $name
+run_rc_command "$1"
+
