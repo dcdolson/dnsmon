@@ -8,6 +8,7 @@
 #include <vector>
 #include <unordered_map>
 #include "PacketDump.h"
+#include "GetTimestamp.h"
 
 bool dns_isquery(const uint8_t* dns, unsigned length)
 {
@@ -108,7 +109,8 @@ void Dump(const struct sockaddr_in& from, const uint8_t* message, unsigned lengt
     DnsQuestions info = ParseQuestions(message, length);
     for(const DnsQuestion& q: info)
     {
-        std::cout << to_string(from.sin_addr) << ","
+        std::cout << GetTimestamp() << ","
+                  << to_string(from.sin_addr) << ","
                   << ntohs(from.sin_port) << "," 
                   << q.Name() << std::endl;
     }
