@@ -16,5 +16,7 @@ obj/%.o: %.cpp
 	mkdir -p obj
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-obj/main.o: PacketDump.h
+obj/main.o: GetTimestamp.h Options.h PacketDump.h
+obj/Options.o: Options.h
+obj/GetTimestamp.o: GetTimestamp.h
 
