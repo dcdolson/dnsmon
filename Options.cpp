@@ -33,15 +33,17 @@ namespace
 DnsOptions::DnsOptions(int argc, char* const* argv):
     m_port(53)
 {
+    bool found_server = false;
     while (1)
     {
-        int option_index = 0;
         static struct option long_options[] = {
             {"port",    required_argument, nullptr,  'p' },
+            {"server",  required_argument, nullptr,  's' },
             {0,         0,                 nullptr,  0 }
         };
 
-       int c = getopt_long(argc, argv, "p:h", long_options, &option_index);
+        int option_index = 0;
+       int c = getopt_long(argc, argv, "p:s:h", long_options, &option_index);
        if (c == -1)
        {
            if(optind < argc)
@@ -56,10 +58,13 @@ DnsOptions::DnsOptions(int argc, char* const* argv):
        switch (c)
        {
        case 'p':
-
            m_port = ParsePort(optarg);
            break;
 
+       case 's':
+           m_serverAddr = optarg;
+           found_server = true;
+           break;
        case 'h':
            Usage(argv[0]);
            exit(0);
@@ -68,6 +73,12 @@ DnsOptions::DnsOptions(int argc, char* const* argv):
            Usage(argv[0]);
            exit(1);
        }
+   }
+   if(!found_server)
+   {
+       std::cerr << "Required argument --server is missing" << std::endl;
+       Usage(argv[0]);
+       exit(1);
    }
 }
 

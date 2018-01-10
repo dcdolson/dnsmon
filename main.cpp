@@ -149,9 +149,9 @@ int main(int argc, char* const* argv)
     struct sockaddr_in server;
     server.sin_family = AF_INET;
     server.sin_port = htons(53);
-    if (1 != inet_pton(AF_INET, "192.168.123.1", &server.sin_addr))
+    if (1 != inet_pton(AF_INET, options.ServerAddr(), &server.sin_addr))
     {
-        std::cerr << "Problem converting address" << std::endl;
+        std::cerr << "Problem parsing server address '" << options.ServerAddr() << "' as IPv4" << std::endl;
         exit(1);
     }
     if (0 != connect(client_socket, (struct sockaddr*)&server, sizeof(server)))
