@@ -43,42 +43,42 @@ DnsOptions::DnsOptions(int argc, char* const* argv):
         };
 
         int option_index = 0;
-       int c = getopt_long(argc, argv, "p:s:h", long_options, &option_index);
-       if (c == -1)
-       {
-           if(optind < argc)
-           {
-               std::cerr << "Unexpected parameter '" << argv[optind] << "' after flags." << std::endl;
-               Usage(argv[0]);
-               exit(1);
-           }
-           break;
-       }
+        int c = getopt_long(argc, argv, "p:s:h", long_options, &option_index);
+        if (c == -1)
+        {
+            if(optind < argc)
+            {
+                std::cerr << "Unexpected parameter '" << argv[optind] << "' after flags." << std::endl;
+                Usage(argv[0]);
+                exit(1);
+            }
+            break;
+        }
 
-       switch (c)
-       {
-       case 'p':
-           m_port = ParsePort(optarg);
-           break;
+        switch (c)
+        {
+        case 'p':
+            m_port = ParsePort(optarg);
+            break;
 
-       case 's':
-           m_serverAddr = optarg;
-           found_server = true;
-           break;
-       case 'h':
-           Usage(argv[0]);
-           exit(0);
+        case 's':
+            m_serverAddr = optarg;
+            found_server = true;
+            break;
+        case 'h':
+            Usage(argv[0]);
+            exit(0);
 
-       case '?':
-           Usage(argv[0]);
-           exit(1);
-       }
-   }
-   if(!found_server)
-   {
-       std::cerr << "Required argument --server is missing" << std::endl;
-       Usage(argv[0]);
-       exit(1);
-   }
+        case '?':
+            Usage(argv[0]);
+            exit(1);
+        }
+    }
+    if(!found_server)
+    {
+        std::cerr << "Required argument --server is missing" << std::endl;
+        Usage(argv[0]);
+        exit(1);
+    }
 }
 
