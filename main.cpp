@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include "PacketDump.h"
 #include "GetTimestamp.h"
+#include "Options.h"
 
 bool dns_isquery(const uint8_t* dns, unsigned length)
 {
@@ -116,8 +117,10 @@ void Dump(const struct sockaddr_in& from, const uint8_t* message, unsigned lengt
     }
 }
 
-int main(int argc, const char** argv)
+int main(int argc, char* const* argv)
 {
+    DnsOptions options(argc, argv);
+
     int s = socket(PF_INET, SOCK_DGRAM, 0);
     if (s < 0)
     {
@@ -125,9 +128,10 @@ int main(int argc, const char** argv)
         exit(1);
     }
     
+    // Listen port from internal clients.
     struct sockaddr_in sa;
     sa.sin_family = AF_INET;
-    sa.sin_port = htons(53); // DNS
+    sa.sin_port = htons(options.Port()); // DNS
     sa.sin_addr.s_addr = INADDR_ANY;
     if (0 != bind(s, (struct sockaddr*)&sa, sizeof(sa)))
     {
