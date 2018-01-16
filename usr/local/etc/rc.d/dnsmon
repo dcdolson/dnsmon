@@ -17,16 +17,16 @@
 # DO NOT CHANGE THESE DEFAULT VALUES HERE
 #
 dnsmon_enable=${dnsmon_enable:-"NO"}
-command_args="${dnsmon_flags:-""} &"
+command_args="${dnsmon_flags:-""} --daemon"
 
 . /etc/rc.subr
 
 name="dnsmon"
 rcvar=dnsmon_enable
 
-procname=dnsmon.sh
+procname=dnsmon
 
-command="/usr/local/dnsmon/etc/dnsmon.sh"
+command="/usr/local/dnsmon/bin/dnsmon"
 
 load_rc_config $name
 run_rc_command "$1"

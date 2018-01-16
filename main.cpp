@@ -3,7 +3,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
+#include <syslog.h>
 #include <string.h>
+#include <stdlib.h>
 #include <iostream>
 #include <vector>
 #include <unordered_map>
@@ -59,7 +61,7 @@ std::string next_label(const uint8_t*& p, unsigned& length)
     if(len > length)
     {
         // invalid packet
-        std::cerr << "Invalid question format" << std::endl;
+        syslog(LOG_LOCAL0|LOG_WARNING, "Invalid question format");
         return std::string();
     }
     std::string label(uc_to_c(p), len);
@@ -110,10 +112,7 @@ void Dump(const struct sockaddr_in& from, const uint8_t* message, unsigned lengt
     DnsQuestions info = ParseQuestions(message, length);
     for(const DnsQuestion& q: info)
     {
-        std::cout << GetTimestamp() << ","
-                  << to_string(from.sin_addr) << ","
-                  << ntohs(from.sin_port) << "," 
-                  << q.Name() << std::endl;
+        syslog(LOG_LOCAL0|LOG_INFO, "dns-query %s %s", to_string(from.sin_addr).c_str(), q.Name().c_str());
     }
 }
 
@@ -124,7 +123,7 @@ int main(int argc, char* const* argv)
     int s = socket(PF_INET, SOCK_DGRAM, 0);
     if (s < 0)
     {
-        std::cerr << "Failure to open server socket: " << strerror(errno) << std::endl;
+        syslog(LOG_LOCAL0|LOG_ERR, "Failure to open server socket: %m");
         exit(1);
     }
     
@@ -135,14 +134,14 @@ int main(int argc, char* const* argv)
     sa.sin_addr.s_addr = INADDR_ANY;
     if (0 != bind(s, (struct sockaddr*)&sa, sizeof(sa)))
     {
-        std::cerr << "Failure to bind socket: " << strerror(errno) << std::endl;
+        syslog(LOG_LOCAL0|LOG_ERR, "Failure to bind socket: %m");
         exit(1);
     }
 
     int client_socket = socket(PF_INET, SOCK_DGRAM, 0);
     if (client_socket < 0)
     {
-        std::cerr << "Failure to open client socket: " << strerror(errno) << std::endl;
+        syslog(LOG_LOCAL0|LOG_ERR, "Failure to open client socket: %m");
         exit(1);
     }
 
@@ -151,13 +150,19 @@ int main(int argc, char* const* argv)
     server.sin_port = htons(53);
     if (1 != inet_pton(AF_INET, options.ServerAddr(), &server.sin_addr))
     {
+        syslog(LOG_LOCAL0|LOG_ERR, "Cannot parse server address '%s' as IPv4", options.ServerAddr());
         std::cerr << "Problem parsing server address '" << options.ServerAddr() << "' as IPv4" << std::endl;
         exit(1);
     }
     if (0 != connect(client_socket, (struct sockaddr*)&server, sizeof(server)))
     {
-        std::cerr << "Failure connecting to server: " << strerror(errno) << std::endl;
+        syslog(LOG_LOCAL0|LOG_ERR, "Failure connecting to server: %m");
         exit(1);
+    }
+
+    if(options.IsDaemon())
+    {
+        daemon(0, 0);
     }
 
     uint16_t g_txn = 1;
@@ -174,7 +179,7 @@ int main(int argc, char* const* argv)
         int n = select(std::max(s,client_socket)+1, &readfds, /*writefds*/ nullptr, /*exceptfds*/nullptr, /*timeout*/nullptr);
         if(n < 0)
         {
-            std::cerr << "Select error: " << strerror(errno) << std::endl;
+            syslog(LOG_LOCAL0|LOG_ERR, "Select() error: %m");
             exit(1);
         }
 
@@ -203,13 +208,13 @@ int main(int argc, char* const* argv)
                     *(uint16_t*)message = htons(new_txn);
                     if(bytes != send(client_socket, message, bytes, /*flags*/ 0))
                     {
-                        std::cout << "Trouble sending to server: " << strerror(errno) << std::endl;
+                        syslog(LOG_LOCAL0|LOG_ERR, "Trouble sending to server: %m");
                     }
                 }
             }
             else
             {
-                std::cerr << "Error on server socket recvfrom: " << strerror(errno) << std::endl;
+                syslog(LOG_LOCAL0|LOG_ERR, "Error on server socket recvfrom: %m");
                 exit(1);
             }
         }
@@ -235,18 +240,18 @@ int main(int argc, char* const* argv)
                                           (struct sockaddr*)&i->second.first, sizeof(struct sockaddr_in));
                     if(sent < 0)
                     {
-                        std::cout << "Error sending back to client: " << strerror(errno) << std::endl;
+                        syslog(LOG_LOCAL0|LOG_ERR, "Error sending back to client: %m");
                     }
                     transaction_map.erase(i);
                 }
                 else
                 {
-                    std::cout << "Response transaction not found" << std::endl;
+                    syslog(LOG_LOCAL0|LOG_WARNING, "Response transaction not found");
                 }
             }
             else
             {
-                std::cerr << "Error on client socket recvfrom: " << strerror(errno) << std::endl;
+                syslog(LOG_LOCAL0|LOG_ERR, "Error on client socket recvfrom: %m");
                 exit(1);
             }
         }

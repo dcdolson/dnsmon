@@ -13,7 +13,10 @@ public:
     //! Get the textual IP address to connect to.
     const char* ServerAddr() const { return m_serverAddr.c_str(); }
 
+    bool IsDaemon() const { return m_daemon; }
+
 private:
     uint16_t     m_port;
+    bool         m_daemon; //!< Process should daemonize.
     std::string  m_serverAddr;
 };

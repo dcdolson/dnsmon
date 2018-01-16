@@ -8,7 +8,7 @@ namespace
     void Usage(const char* progname)
     {
         std::cerr << "Usage:" << std::endl
-                  << "    " << progname << " [-p <port>] [--port <port>]" << std::endl;
+                  << "    " << progname << " [-p <port>] [--port <port>] [--daemon] --server <ip>" << std::endl;
     }
 
     uint16_t ParsePort(const char* opt)
@@ -31,19 +31,21 @@ namespace
 
 
 DnsOptions::DnsOptions(int argc, char* const* argv):
-    m_port(53)
+    m_port(53),
+    m_daemon(false)
 {
     bool found_server = false;
     while (1)
     {
         static struct option long_options[] = {
+            {"daemon",  no_argument,       nullptr,  'd' },
             {"port",    required_argument, nullptr,  'p' },
             {"server",  required_argument, nullptr,  's' },
             {0,         0,                 nullptr,  0 }
         };
 
         int option_index = 0;
-        int c = getopt_long(argc, argv, "p:s:h", long_options, &option_index);
+        int c = getopt_long(argc, argv, "dp:s:h", long_options, &option_index);
         if (c == -1)
         {
             if(optind < argc)
@@ -57,6 +59,9 @@ DnsOptions::DnsOptions(int argc, char* const* argv):
 
         switch (c)
         {
+        case 'd':
+            m_daemon = true;
+            break;
         case 'p':
             m_port = ParsePort(optarg);
             break;
